@@ -21,7 +21,6 @@
     .btn-check:checked + .btn { background-color: #0d6efd; color: #fff; }
     .simple-table { width: 100%; margin: 1rem auto; border-collapse: collapse; }
     .simple-table th, .simple-table td { border-bottom: 1px solid #eee; padding: .5rem .75rem; text-align: left; }
-    .low-confidence { color: #d9534f; font-weight: bold; margin: 1rem 0; }
     .author { color: #777; font-size: 0.9rem; margin-top: 2rem; text-align: center; }
     .chart-container { width: 100%; max-width: 700px; margin: 2rem auto; }
     @media (max-width: 576px) {
@@ -59,5 +58,25 @@
       <img src="taiwanpoliticalanalysis.png" alt="Logo">
       <h2>光譜分析結果</h2>
     </div>
-    <div id="low-conf" class="low-confidence hidden">⚠️ 作答品質偏低，結果僅供參考。</div>
-    <div id="result-char
+    <div id="result-charts"></div>
+    <div id="analysis-text" class="mt-4 text-start"></div>
+  </div>
+
+  <div class="author">
+    作者：Aston Lu<br>
+    © 2025 Aston Lu. 本測驗由 Aston 獨立開發，不隸屬任何政黨或利益團體，結果僅供參考。
+  </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // 問題清單：20 題
+  const questions = [
+    '我支持在不預設政治前提下維持兩岸對話，以降低風險。',
+    '在主權與經貿之間，我更重視維護主權。',
+    '最理想的策略是維持現狀並分散市場及供應鏈風險。',
+    '我支持政府在治安與資安上有強大執行力，並提供申訴機制。',
+    '我偏好以公民參與推動政策，即使效率下降也可接受。',
+    '我重視可量化 KPI 與進度管理，意識形態宣示次於執行。',
+    '政府應對關鍵產業投資並設置退場機制。',
+    '簡化稅制與法規優於大規模補貼。',
+    '公部門採購應優先在地產品，即使成本略高也可接受。',
