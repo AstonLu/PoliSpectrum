@@ -1,108 +1,48 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>台灣政治光譜分析測驗 v1.1</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>台灣政治光譜分析測驗</title>
+  <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    body{background:#fff;} .hidden{display:none;}
-    .header{text-align:center;margin:2rem 0;}
-    .intro, .form-container{max-width:800px;margin:auto;text-align:center;}
-    .question{margin:1.5rem 0;}
-    .low-confidence{color:red;font-weight:bold;}
+    body { background: #fff; }
+    .hidden { display: none; }
+    .header, .result-header { text-align: center; margin: 1.5rem 0; }
+    .header img, .result-header img { max-width: 300px; }
+    .intro, .form-container, .analysis { max-width: 800px; margin: auto; text-align: center; }
+    .question { margin: 1.5rem 0; }
+    .btn-group .btn { width: 3rem; height: 2rem; }
+    .btn-check:checked + .btn { background-color: #0d6efd; color: #fff; }
+    .low-confidence { color: #d9534f; font-weight: bold; margin: 1rem 0; }
+    .chart-container { max-width: 600px; margin: 2rem auto; }
+    @media (max-width:576px){ .intro, .form-container, .analysis { padding: 0 1rem; } }
   </style>
 </head>
 <body>
+  <!-- 首頁 -->
   <div id="home">
     <div class="header">
-      <img src="taiwanpoliticalanalysis.png" alt="Logo" style="max-width:400px;">
+      <img src="taiwanpoliticalanalysis.png" alt="Logo">
       <h1>台灣政治光譜分析測驗</h1>
     </div>
     <div class="intro">
-      <p>這是一個快速了解你在台灣政治光譜中位置的小工具。按 Start 開始填答！</p>
+      <p>這是一個快速了解你在台灣政治光譜中位置的小工具。測驗包含20題，按 Start 開始！</p>
       <button id="start-btn" class="btn btn-primary btn-lg">Start</button>
     </div>
   </div>
 
-  <div id="survey-container" class="hidden">
+  <!-- 問卷區 -->
+  <div id="survey" class="hidden">
     <div class="form-container">
       <h2>請填寫以下題目</h2>
       <form id="survey-form"></form>
     </div>
   </div>
 
-  <div id="low-conf" class="text-center low-confidence hidden">
-    ⚠️ 您的作答品質偏低，結果僅供參考。
-  </div>
-
-  <script>
-  // 問卷題庫（請依序補齊 20 題與反向題 & 注意力檢核）
-  const rawQuestions = [
-    {id:'Q1',  axis:'A', text:'我支持在不預設政治前提下維持兩岸對話，以降低風險。', reverse:false},
-    {id:'Q1R', axis:'A', text:'我認為兩岸對話風險過高，應該避免。', reverse:true},
-    {id:'CHK', axis:'', text:'為了確認你有在閱讀，請選擇「1」非常不同意。', reverse:false, is_attention_check:true},
-    // …其餘題目…
-  ];
-
-  // 隨機打散
-  const questions = rawQuestions.sort(()=>Math.random()-0.5);
-  let startTime, timestamps = {};
-
-  window.addEventListener('DOMContentLoaded',()=>{
-    const form = document.getElementById('survey-form');
-    questions.forEach(q=>{
-      const div = document.createElement('div');
-      div.className = 'question';
-      div.innerHTML = `
-        <p><strong>${q.text}</strong></p>
-        <div class="btn-group" role="group">
-          ${['1','2','3','4','5','NA'].map(v=>`
-            <input type="radio" name="${q.id}" id="${q.id}-${v}" value="${v}" class="btn-check">
-            <label class="btn btn-outline-secondary" for="${q.id}-${v}">
-              ${v==='NA'?'不知道/不適用':v}
-            </label>`).join('')}
-        </div>`;
-      div.querySelectorAll('input').forEach(inp=>{
-        inp.addEventListener('change',()=>timestamps[q.id]=Date.now());
-      });
-      form.appendChild(div);
-    });
-    form.insertAdjacentHTML('beforeend','<div class="text-center mt-4"><button type="submit" class="btn btn-primary btn-lg">提交</button></div>');
-
-    document.getElementById('start-btn').onclick = ()=>{
-      startTime = Date.now();
-      document.getElementById('home').classList.add('hidden');
-      document.getElementById('survey-container').classList.remove('hidden');
-    };
-
-    form.onsubmit = e=>{
-      e.preventDefault();
-      const answers={}, missing=[];
-      questions.forEach(q=>{
-        const v = form.elements[q.id].value;
-        answers[q.id]=v; if(!v) missing.push(q.id);
-      });
-      if(missing.length){
-        alert('請填寫：'+missing.join('、')); return;
-      }
-      const totalTime = Date.now()-startTime;
-      const avgTime = totalTime/questions.length;
-      const fast = avgTime<1000;
-      const flat = Object.values(answers).every(v=>v===answers[questions[0].id]);
-      const attentionOK = answers['CHK']==='1';
-      const lowConf = fast||flat||!attentionOK;
-      if(lowConf) document.getElementById('low-conf').classList.remove('hidden');
-
-      fetch('https://<YOUR_BACKEND_URL>/submit', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({answers,timestamps,totalTime,lowConfidence:lowConf})
-      })
-      .then(r=>r.json()).then(res=>{
-        console.log(res);
-        // TODO: 在這裡接續顯示後端計分與視覺化結果
-      });
-    };
-  });
-  </script>
-</body>
-</html>
+  <!-- 結果區 -->
+  <div id="result" class="analysis hidden">
+    <div cla
