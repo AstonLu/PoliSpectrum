@@ -12,28 +12,30 @@
     .section { margin-top: 1.5rem; }
     .hidden { display: none; }
     .chart-container { width: 100%; max-width: 600px; margin: auto; }
-    .intro { width: 100%; max-width: 1000px; margin: auto; }
+    .intro { width: 100%; max-width: 1000px; margin: auto; margin-top: 0.5rem; }
+    #home .header { margin-bottom: 1rem; }
     @media (max-width: 576px) {
-      h1 { font-size: 1.75rem; }
+      h1 { font-size: 1.75rem; margin-top: 0.5rem; }
       h2 { font-size: 1.25rem; }
       .btn-lg { padding: 0.75rem 1.25rem; font-size: 1rem; }
       .section { margin-top: 1rem; }
       .intro { padding: 0 0.5rem; }
+      #home .header { margin-bottom: 0.5rem; }
     }
   </style>
 </head>
 <body>
   <div class="container-fluid px-3 py-5">
     <!-- 首頁區塊 -->
-    <div id="home">
-      <div class="text-center">
-        <img src="taiwanpoliticalanalysis.png" alt="Logo" class="img-fluid mb-3" style="width:100%; max-width:600px; height:auto;">
-        <h1>台灣政治光譜分析測驗</h1>
+    <div id="home" class="text-center">
+      <div class="header">
+        <img src="taiwanpoliticalanalysis.png" alt="Logo" class="img-fluid" style="width:100%; max-width:600px; height:auto;">
+        <h1 class="mt-3">台灣政治光譜分析測驗</h1>
       </div>
       <div class="intro">
         <p>你好！這是一個快速了解你在台灣政治光譜中位置的小工具。測驗包含 20 題，分別從「兩岸與認同」、「治理與秩序」、「經濟策略」、「社會議題」、「能源與環境」到「反極化與風格」，共六大面向。請對每題選擇 1（非常不同意）到 5（非常同意）的分數。完成後，你將看到對應的散點圖與雷達圖，系統也會自動為你歸類為「深藍」、「淺藍」、「中間白」、「淺綠」或「深綠」，讓你一目了然了解自己的政治傾向。這個測驗不是要讓你去批判政黨或別人，而是幫助你更了解自己在意什麼，並更好地思考與支持合適的候選人，做出更正確的決定。</p>
       </div>
-      <div class="text-center mt-4">
+      <div class="mt-3">
         <button id="start-btn" class="btn btn-primary btn-lg">Start</button>
       </div>
     </div>
@@ -77,7 +79,6 @@
               <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
             </select>
           </div>
-          <!-- 其餘面向同理，請確保所有 select 均為 form-select 類別並包在 mb-3 中 -->
         </div>
         <button type="submit" class="btn btn-primary mt-3">提交</button>
       </form>
