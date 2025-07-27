@@ -70,12 +70,28 @@
   </div>
 
 <script>
-// 問題清單 (示範前3題，完整請自行補齊 20 題)
+// 問題清單：完整 20 題
 const questions = [
   '我支持在不預設政治前提下維持兩岸對話，以降低風險。',
   '在主權與經貿之間，我更重視維護主權。',
   '最理想的策略是維持現狀並分散市場及供應鏈風險。',
-  // …其餘 17 題…
+  '我支持政府在治安與資安上有強大執行力，並提供申訴機制。',
+  '我偏好以公民參與推動政策，即使效率下降也可接受。',
+  '我重視可量化 KPI 與進度管理，意識形態宣示次於執行。',
+  '政府應對關鍵產業投資並設置退場機制。',
+  '簡化稅制與法規優於大規模補貼。',
+  '公部門採購應優先在地產品，即使成本略高也可接受。',
+  '我強調家庭與教育中的傳統價值與秩序。',
+  '我支持法律保障少數群體權益並投入資源。',
+  '我偏好重刑威懾與延長羈押期限以提升社會安全。',
+  '我支持保留核能做為供電備援以確保穩定。',
+  '即使成本增加，我仍支持提高碳定價與嚴格排放標準。',
+  '政府應先擴充供給與電網，再推動禁售或退場政策。',
+  '我反感貼標籤與情緒動員，更偏好技術細節與評估。',
+  '若兩大黨政策與第三勢力相似，我會優先支持第三勢力。',
+  '我傾向跨黨協商折衷，而非追求極端政策。',
+  '即使我不喜歡提出政策的人，只要方案可行我仍支持。',
+  '若提高稅負但可帶來長期產業升級，我可接受。'
 ];
 
 // 分類函式：光譜顏色
@@ -90,17 +106,17 @@ function spectrumColor(A) {
 // 分類函式：政黨接近度
 function partyProximity([A,B,C,D,E,F]) {
   const prototypes = {
-    '國民黨': [2,3,3,2.6,3,3],
-    '民進黨': [4.4,3.6,3.2,4,3.6,3.2],
-    '民眾黨': [3,3.4,3.3,3.2,3.2,4.3]
+    '國民黨': [2.0,3.0,3.0,2.6,3.0,3.0],
+    '民進黨': [4.4,3.6,3.2,4.0,3.6,3.2],
+    '民眾黨': [3.0,3.4,3.3,3.2,3.2,4.3]
   };
   const dist = (v1,v2) => Math.hypot(...v1.map((x,i)=>x-v2[i]));
   let arr = Object.entries(prototypes)
     .map(([n,v])=>({name:n,d:dist([A,B,C,D,E,F],v)}))
     .sort((a,b)=>a.d-b.d);
-  const best=arr[0], second=arr[1], margin=second.d-best.d;
-  if(best.d<=1 && margin>=0.35) return {label:`${best.name}（接近）`, ranked:arr};
-  return {label:'尚無明顯政黨接近（混合）', ranked:arr};
+  const best = arr[0], second = arr[1], margin = second.d - best.d;
+  if (best.d <= 1 && margin >= 0.35) return {label:`${best.name}（接近）`, ranked:arr};
+  return {label:'尚無明顯政黨接近', ranked:arr};
 }
 
 // 動態生成表單
@@ -135,51 +151,37 @@ document.getElementById('start-btn').onclick = ()=>{
 // 表單提交
 document.getElementById('survey-form').addEventListener('submit',e=>{
   e.preventDefault();
+  // 驗證
+  const missing = questions.map((_,i)=>i)
+    .filter(i=>!document.querySelector(`input[name="q${i}"]:checked`));
+  if (missing.length) {
+    alert('請填寫：' + missing.map(i=>i+1).join('、'));
+    return;
+  }
+  // 讀值
   const vals = questions.map((_,i)=>+document.querySelector(`input[name="q${i}"]:checked`).value);
-  // 簡化示範：A,B,C分別取前三題
-  const A = (vals[0]+vals[1]+vals[2])/3;
-  const B = A, C = A, D = A, E = A, F = A;
+  // 六軸平均（每三題為一軸示例，可依實際分配調整）
+  const avg = idxs=>idxs.reduce((s,i)=>s+vals[i],0)/idxs.length;
+  const A=avg([0,1,2]), B=avg([3,4,5]), C=avg([6,7,8]),
+        D=avg([9,10,11]), E=avg([12,13,14]), F=avg([15,16,17]);
   const color = spectrumColor(A);
-  const prox = partyProximity([A,B,C,D,E,F]);
-
+  const prox  = partyProximity([A,B,C,D,E,F]);
+  // 顯示結果
   document.getElementById('survey-container').classList.add('hidden');
   document.getElementById('result-analysis').classList.remove('hidden');
-
-  // Top2
+  // Top2 列表
   const rows = prox.ranked.slice(0,2)
     .map((r,i)=>`<tr><td>${i+1}</td><td>${r.name}</td><td>${r.d.toFixed(2)}</td></tr>`).join('');
   document.getElementById('result-charts').innerHTML = `
-    <h3 class="text-center">你的光譜分類：${color}　|　政黨接近度：${prox.label}</h3>
+    <h3 class="text-center">光譜分類：${color}　|　政黨接近度：${prox.label}</h3>
     <table class="simple-table">
       <thead><tr><th>#</th><th>政黨</th><th>距離</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>
     <div class="chart-container"><canvas id="scatterChart"></canvas></div>
     <div class="chart-container"><canvas id="radarChart"></canvas></div>`;
-
-  new Chart('scatterChart',{
-    type:'scatter',
+  // 散點圖
+  new Chart('scatterChart',{type:'scatter',
     data:{datasets:[
       {label:'你',data:[{x:A,y:B}],backgroundColor:'#0d6efd',pointRadius:6},
-      {label:'A=3',data:[{x:3,y:1},{x:3,y:5}],showLine:true,borderDash:[5,5],borderColor:'#666'},
-      {label:'B=3',data:[{x:1,y:3},{x:5,y:3}],showLine:true,borderDash:[5,5],borderColor:'#666'}
-    ]},
-    options:{scales:{x:{min:1,max:5,title:{display:true,text:'A (兩岸)'}},
-                     y:{min:1,max:5,title:{display:true,text:'B (治理)'}}}}
-  });
-
-  new Chart('radarChart',{
-    type:'radar',
-    data:{labels:['A','B','C','D','E','F'],datasets:[
-      {data:[A,B,C,D,E,F],fill:true,backgroundColor:'rgba(255,99,132,0.3)',borderColor:'#f00'}
-    ]},
-    options:{scales:{r:{min:1,max:5,ticks:{stepSize:1}}}}
-  });
-
-  document.getElementById('analysis-text').innerHTML = `
-    <h4>解讀與建議</h4>
-    <p>你的A軸得分為 ${A.toFixed(1)}，屬於「${color}」。請參考散點圖與雷達圖，了解各面向偏好……</p>`;
-});
-</script>
-</body>
-</html>
+      {lab
