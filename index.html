@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -9,20 +10,22 @@
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    body { background-color: #fff; }
+    body { background-color: #ffffff; }
     .header { text-align: center; margin-bottom: 1rem; }
-    .header img { width:100%; max-width:600px; }
-    .header h1 { margin-top:0.5rem; }
-    .intro { max-width:1000px; margin:auto 0 1.5rem; }
-    .form-container, .analysis { max-width:1000px; margin:auto; }
-    .section { margin-top:1.5rem; }
-    .chart-container { width:100%; max-width:600px; margin:auto; }
-    @media(max-width:576px){
-      .intro, .form-container, .analysis { padding:0 .5rem; }
+    .header img { width: 100%; max-width: 600px; height: auto; }
+    .header h1 { margin-top: 0.5rem; }
+    .intro { max-width: 1000px; margin: auto; margin-bottom: 1.5rem; text-align: center; }
+    .form-container, .analysis { max-width: 1000px; margin: auto; }
+    .section { margin-top: 1.5rem; }
+    .chart-container { width: 100%; max-width: 600px; margin: auto; }
+    .btn-check:checked + .btn { background-color: #0d6efd; color: #fff; }
+    @media (max-width: 576px) {
+      .intro, .form-container, .analysis { padding: 0 0.5rem; }
     }
   </style>
 </head>
 <body>
+  <!-- 首頁 -->
   <div id="home">
     <div class="header">
       <img src="taiwanpoliticalanalysis.png" alt="Logo">
@@ -35,18 +38,27 @@
       <button id="start-btn" class="btn btn-primary btn-lg">Start</button>
     </div>
   </div>
+
+  <!-- 問卷 -->
   <div id="survey-container" class="hidden">
     <h2 class="text-center">請填寫以下題目</h2>
-    <div class="form-container"><form id="survey-form"></form></div>
+    <div class="form-container">
+      <form id="survey-form"></form>
+    </div>
   </div>
+
+  <!-- 結果 -->
   <div id="result-analysis" class="analysis hidden">
     <div id="result-charts"></div>
     <div id="analysis-text"></div>
   </div>
+
   <div class="text-center text-muted mt-5 small">
     本測驗由 Aston 獨立開發，不隸屬任何政黨或利益團體，結果僅供參考。
   </div>
+
 <script>
+// 問題清單
 const questions = [
   '我支持在不預設政治前提下維持兩岸對話，以降低風險。',
   '在主權與經貿之間，我更重視維護主權。',
@@ -69,55 +81,93 @@ const questions = [
   '即使我不喜歡提出政策的人，只要方案可行我仍支持。',
   '若提高稅負但可帶來長期產業升級，我可接受。'
 ];
-window.addEventListener('DOMContentLoaded',()=>{
+
+// 動態生成表單
+window.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('survey-form');
-  questions.forEach((q,i)=>{
-    const div=document.createElement('div');
-    div.className='mb-3';
-    div.innerHTML=`<label for="q${i+1}" class="form-label">${i+1}. ${q}</label>
-      <select id="q${i+1}" class="form-select">
-        <option value="">請選擇…</option>
-        ${[1,2,3,4,5].map(n=>`<option>${n}</option>`).join('')}
-      </select>`;
+  questions.forEach((text, idx) => {
+    const num = idx + 1;
+    const div = document.createElement('div');
+    div.className = 'mb-4';
+    div.innerHTML = `
+      <p><strong>${num}. ${text}</strong></p>
+      <div class="d-flex align-items-center">
+        <span class="me-2">非常不同意</span>
+        <div class="btn-group" role="group" aria-label="選擇1-5">
+          ${[1,2,3,4,5].map(n => `
+            <input type="radio" class="btn-check" name="q${num}" id="q${num}-${n}" value="${n}">
+            <label class="btn btn-outline-primary btn-sm" for="q${num}-${n}">${n}</label>
+          `).join('')}
+        </div>
+        <span class="ms-2">非常同意</span>
+      </div>
+    `;
     form.appendChild(div);
   });
-  const btn=document.createElement('div');
-  btn.className='text-center mt-4';
-  btn.innerHTML='<button type="submit" class="btn btn-primary btn-lg">提交</button>';
-  form.appendChild(btn);
+  // 加提交按鈕
+  const btnDiv = document.createElement('div');
+  btnDiv.className = 'text-center mt-4';
+  btnDiv.innerHTML = `<button type="submit" class="btn btn-primary btn-lg">提交</button>`;
+  form.appendChild(btnDiv);
 });
-document.getElementById('start-btn').onclick=()=>{
+
+// Start 按鈕
+document.getElementById('start-btn').addEventListener('click', () => {
   document.getElementById('home').classList.add('hidden');
   document.getElementById('survey-container').classList.remove('hidden');
-};
-document.getElementById('survey-form').onsubmit=function(e){
+});
+
+// 表單提交與驗證
+document.getElementById('survey-form').addEventListener('submit', function(e) {
   e.preventDefault();
-  const sel=Array.from(this.querySelectorAll('select'));
-  const miss=sel.filter(s=>!s.value).map(s=>s.id.slice(1));
-  if(miss.length){ alert('請填寫題目：'+miss.join('、')); return; }
-  const vals=sel.map(s=>+s.value);
-  const avg=idxs=>idxs.reduce((sum,i)=>sum+vals[i-1],0)/idxs.length;
-  const A=avg([1,2,3]),B=avg([4,5,6]),C=avg([7,8,9]),
-        D=avg([10,11,12]),E=avg([13,14,15]),F=avg([16,17,18]);
-  let cat='未分類';
-  if(A<=2&&B<=2&&D<=2&&F<=3)cat='深藍';
-  else if(A<=3&&B<=3&&D>=2&&D<=3)cat='淺藍';
-  else if(F>=4&&B<=3&&A>=2&&A<=4)cat='中間白';
-  else if(A>=3.5&&D>=3.5&&B>=3)cat='淺綠';
-  else if(A>=4.5&&D>=4&&B>=3.5&&(C>=4||E>=4))cat='深綠';
+  const missing = [];
+  questions.forEach((_, idx) => {
+    const name = `q${idx+1}`;
+    if (!document.querySelector(`input[name="${name}"]:checked`)) {
+      missing.push(idx+1);
+    }
+  });
+  if (missing.length) {
+    alert('請填寫題目：' + missing.join('、'));
+    return;
+  }
+  const vals = questions.map((_, idx) => 
+    parseInt(document.querySelector(`input[name="q${idx+1}"]:checked`).value, 10)
+  );
+  const avg = idxs => idxs.reduce((sum,i)=>sum+vals[i-1],0)/idxs.length;
+  const A = avg([1,2,3]), B = avg([4,5,6]), C = avg([7,8,9]),
+        D = avg([10,11,12]), E = avg([13,14,15]), F = avg([16,17,18]);
+  let cat = '未分類';
+  if (A<=2 && B<=2 && D<=2 && F<=3) cat='深藍';
+  else if (A<=3 && B<=3 && D>=2 && D<=3) cat='淺藍';
+  else if (F>=4 && B<=3 && A>=2 && A<=4) cat='中間白';
+  else if (A>=3.5 && D>=3.5 && B>=3) cat='淺綠';
+  else if (A>=4.5 && D>=4 && B>=3.5 && (C>=4 || E>=4)) cat='深綠';
   document.getElementById('survey-container').classList.add('hidden');
-  document.getElementById('result-analysis').classList.remove('hidden');
-  document.getElementById('result-charts').innerHTML=`
+  const out = document.getElementById('result-analysis');
+  out.classList.remove('hidden');
+  document.getElementById('result-charts').innerHTML = `
     <h3 class="text-center">你的光譜分類：${cat}</h3>
     <div class="chart-container mt-4"><canvas id="scatterChart"></canvas></div>
-    <div class="chart-container mt-4"><canvas id="radarChart"></canvas></div>`;
-  new Chart(document.getElementById('scatterChart'),{type:'scatter',data:{datasets:[{label:'你的位置',data:[{x:A,y:B}],backgroundColor:'rgba(54,162,235,0.6)'}]},options:{scales:{x:{min:1,max:5,title:{display:true,text:'A 軸'}},y:{min:1,max:5,title:{display:true,text:'B 軸'}}}}});
-  new Chart(document.getElementById('radarChart'),{type:'radar',data:{labels:['A','B','C','D','E','F'],datasets:[{label:'分數',data:[A,B,C,D,E,F],fill:true,backgroundColor:'rgba(255,99,132,0.4)',borderColor:'rgba(255,99,132,1)'}]},options:{scales:{r:{min:1,max:5,ticks:{stepSize:1}}}}});
-  document.getElementById('analysis-text').innerHTML=`
+    <div class="chart-container mt-4"><canvas id="radarChart"></canvas></div>
+  `;
+  new Chart(document.getElementById('scatterChart'), {
+    type:'scatter',
+    data:{ datasets:[{ label:'你的位置', data:[{x:A,y:B}], backgroundColor:'rgba(54,162,235,0.6)' }] },
+    options:{ scales:{ x:{min:1,max:5,title:{display:true,text:'A 軸'}}, y:{min:1,max:5,title:{display:true,text:'B 軸'}} }}
+  });
+  new Chart(document.getElementById('radarChart'), {
+    type:'radar',
+    data:{ labels:['A','B','C','D','E','F'], datasets:[{ label:'分數', data:[A,B,C,D,E,F], fill:true, backgroundColor:'rgba(255,99,132,0.4)', borderColor:'rgba(255,99,132,1)' }] },
+    options:{ scales:{ r:{min:1,max:5,ticks:{stepSize:1}} }}
+  });
+  document.getElementById('analysis-text').innerHTML = `
     <h4>圖表解讀</h4>
-    <p>散點圖顯示「兩岸與認同」(A)得分${A.toFixed(2)}、「治理與秩序」(B)得分${B.toFixed(2)}；橫軸代表兩岸立場，縱軸代表執行力取向。</p>
-    <p>雷達圖顯示六大面向分數分佈，越長代表越重視該議題，有助比較與平衡立場。</p>`;
-};
+    <p>散點圖顯示「兩岸與認同」(A) 得分 ${A.toFixed(2)}，「治理與秩序」(B) 得分 ${B.toFixed(2)}；橫軸代表兩岸立場，縱軸代表執行力取向。</p>
+    <p>雷達圖顯示六大面向分數分佈，越長代表越重視該議題，有助比較與平衡立場。</p>
+  `;
+});
 </script>
 </body>
 </html>
+```
