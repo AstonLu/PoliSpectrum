@@ -2,24 +2,32 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <title>台灣政治光譜分析測驗</title>
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    body { background: #fff; }
+    body { background-color: #ffffff; }
     .hidden { display: none; }
-    .header, .result-header { text-align: center; margin: 1.5rem 0; }
-    .header img, .result-header img { max-width: 300px; }
-    .intro, .form-container, .analysis { max-width: 800px; margin: auto; text-align: center; }
-    .question { margin: 1.5rem 0; }
-    .btn-group .btn { width: 3rem; height: 2rem; }
+    .header, .result-header { text-align: center; margin-bottom: 1rem; }
+    .header img, .result-header img { width: 100%; max-width: 600px; height: auto; }
+    .header h1, .result-header h2 { margin-top: 0.5rem; font-weight: bold; }
+    .intro, .form-container, .analysis { max-width: 800px; margin: auto; }
+    .intro { margin-bottom: 1.5rem; text-align: center; }
+    .intro p { margin: auto; max-width: 400px; line-height: 1.6; }
+    .btn-group .btn { width: 3rem; height: 2rem; padding: 0; font-size: 1rem; }
     .btn-check:checked + .btn { background-color: #0d6efd; color: #fff; }
+    .simple-table { width: 100%; margin: 1rem auto; border-collapse: collapse; }
+    .simple-table th, .simple-table td { border-bottom: 1px solid #eee; padding: .5rem .75rem; text-align: left; }
     .low-confidence { color: #d9534f; font-weight: bold; margin: 1rem 0; }
-    .chart-container { max-width: 600px; margin: 2rem auto; }
-    @media (max-width:576px){ .intro, .form-container, .analysis { padding: 0 1rem; } }
+    .author { color: #777; font-size: 0.9rem; margin-top: 2rem; text-align: center; }
+    .chart-container { width: 100%; max-width: 700px; margin: 2rem auto; }
+    @media (max-width: 576px) {
+      .intro, .form-container, .analysis { padding: 0 0.5rem; }
+      .intro p { max-width: 100%; }
+    }
   </style>
 </head>
 <body>
@@ -30,19 +38,148 @@
       <h1>台灣政治光譜分析測驗</h1>
     </div>
     <div class="intro">
-      <p>這是一個快速了解你在台灣政治光譜中位置的小工具。測驗包含20題，按 Start 開始！</p>
+      <p>你好！這是一個快速了解你在台灣政治光譜中位置的小工具。測驗包含20題，分別自「兩岸與認同」、「治理與秩序」、「經濟策略」、「社會議題」、「能源與環境」、「反極化與風格」六大面向；每題請選1至5分。完成後，會自動繪製散點圖、雷達圖，並歸類為「深藍」「淺藍」「中間白」「淺綠」「深綠」，助你認識自己偏好。此測驗非用來批判政黨，而是助你更認識自己、做出更精準選擇。</p>
+    </div>
+    <div class="text-center mb-5">
       <button id="start-btn" class="btn btn-primary btn-lg">Start</button>
     </div>
   </div>
 
-  <!-- 問卷區 -->
-  <div id="survey" class="hidden">
+  <!-- 問卷 -->
+  <div id="survey-container" class="hidden">
+    <h2 class="text-center">請填寫以下題目</h2>
     <div class="form-container">
-      <h2>請填寫以下題目</h2>
       <form id="survey-form"></form>
     </div>
   </div>
 
-  <!-- 結果區 -->
-  <div id="result" class="analysis hidden">
-    <div cla
+  <!-- 結果 -->
+  <div id="result-analysis" class="analysis hidden">
+    <div class="result-header">
+      <img src="taiwanpoliticalanalysis.png" alt="Logo">
+      <h2>光譜分析結果</h2>
+    </div>
+    <div id="low-conf" class="low-confidence hidden">⚠️ 作答品質偏低，結果僅供參考。</div>
+    <div id="result-charts"></div>
+    <div id="analysis-text" class="mt-4 text-start"></div>
+  </div>
+
+  <div class="author">
+    作者：Aston Lu<br>
+    © 2025 Aston Lu. 本測驗由 Aston 獨立開發，不隸屬任何政黨或利益團體，結果僅供參考。
+  </div>
+
+<script>
+// 問題清單 (示範前3題，完整請自行補齊 20 題)
+const questions = [
+  '我支持在不預設政治前提下維持兩岸對話，以降低風險。',
+  '在主權與經貿之間，我更重視維護主權。',
+  '最理想的策略是維持現狀並分散市場及供應鏈風險。',
+  // …其餘 17 題…
+];
+
+// 分類函式：光譜顏色
+function spectrumColor(A) {
+  if (A < 1.8) return '深藍';
+  if (A < 2.6) return '淺藍';
+  if (A < 3.4) return '中間白';
+  if (A < 4.2) return '淺綠';
+  return '深綠';
+}
+
+// 分類函式：政黨接近度
+function partyProximity([A,B,C,D,E,F]) {
+  const prototypes = {
+    '國民黨': [2,3,3,2.6,3,3],
+    '民進黨': [4.4,3.6,3.2,4,3.6,3.2],
+    '民眾黨': [3,3.4,3.3,3.2,3.2,4.3]
+  };
+  const dist = (v1,v2) => Math.hypot(...v1.map((x,i)=>x-v2[i]));
+  let arr = Object.entries(prototypes)
+    .map(([n,v])=>({name:n,d:dist([A,B,C,D,E,F],v)}))
+    .sort((a,b)=>a.d-b.d);
+  const best=arr[0], second=arr[1], margin=second.d-best.d;
+  if(best.d<=1 && margin>=0.35) return {label:`${best.name}（接近）`, ranked:arr};
+  return {label:'尚無明顯政黨接近（混合）', ranked:arr};
+}
+
+// 動態生成表單
+window.addEventListener('DOMContentLoaded',()=>{
+  const form = document.getElementById('survey-form');
+  questions.forEach((txt,i)=>{
+    const div = document.createElement('div');
+    div.className = 'question mb-4';
+    div.innerHTML = `
+      <p><strong>${i+1}. ${txt}</strong></p>
+      <div class="d-flex justify-content-center align-items-center">
+        <span class="me-3">非常不同意</span>
+        <div class="btn-group" role="group">
+          ${[1,2,3,4,5].map(n=>`
+            <input type="radio" class="btn-check" name="q${i}" id="q${i}-${n}" value="${n}">
+            <label class="btn btn-outline-primary" for="q${i}-${n}">${n}</label>`).join('')}
+        </div>
+        <span class="ms-3">非常同意</span>
+      </div>`;
+    form.appendChild(div);
+  });
+  form.insertAdjacentHTML('beforeend',
+    `<div class="text-center mt-4"><button type="submit" class="btn btn-primary btn-lg">提交</button></div>`);
+});
+
+// Start 按鈕
+document.getElementById('start-btn').onclick = ()=>{
+  document.getElementById('home').classList.add('hidden');
+  document.getElementById('survey-container').classList.remove('hidden');
+};
+
+// 表單提交
+document.getElementById('survey-form').addEventListener('submit',e=>{
+  e.preventDefault();
+  const vals = questions.map((_,i)=>+document.querySelector(`input[name="q${i}"]:checked`).value);
+  // 簡化示範：A,B,C分別取前三題
+  const A = (vals[0]+vals[1]+vals[2])/3;
+  const B = A, C = A, D = A, E = A, F = A;
+  const color = spectrumColor(A);
+  const prox = partyProximity([A,B,C,D,E,F]);
+
+  document.getElementById('survey-container').classList.add('hidden');
+  document.getElementById('result-analysis').classList.remove('hidden');
+
+  // Top2
+  const rows = prox.ranked.slice(0,2)
+    .map((r,i)=>`<tr><td>${i+1}</td><td>${r.name}</td><td>${r.d.toFixed(2)}</td></tr>`).join('');
+  document.getElementById('result-charts').innerHTML = `
+    <h3 class="text-center">你的光譜分類：${color}　|　政黨接近度：${prox.label}</h3>
+    <table class="simple-table">
+      <thead><tr><th>#</th><th>政黨</th><th>距離</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div class="chart-container"><canvas id="scatterChart"></canvas></div>
+    <div class="chart-container"><canvas id="radarChart"></canvas></div>`;
+
+  new Chart('scatterChart',{
+    type:'scatter',
+    data:{datasets:[
+      {label:'你',data:[{x:A,y:B}],backgroundColor:'#0d6efd',pointRadius:6},
+      {label:'A=3',data:[{x:3,y:1},{x:3,y:5}],showLine:true,borderDash:[5,5],borderColor:'#666'},
+      {label:'B=3',data:[{x:1,y:3},{x:5,y:3}],showLine:true,borderDash:[5,5],borderColor:'#666'}
+    ]},
+    options:{scales:{x:{min:1,max:5,title:{display:true,text:'A (兩岸)'}},
+                     y:{min:1,max:5,title:{display:true,text:'B (治理)'}}}}
+  });
+
+  new Chart('radarChart',{
+    type:'radar',
+    data:{labels:['A','B','C','D','E','F'],datasets:[
+      {data:[A,B,C,D,E,F],fill:true,backgroundColor:'rgba(255,99,132,0.3)',borderColor:'#f00'}
+    ]},
+    options:{scales:{r:{min:1,max:5,ticks:{stepSize:1}}}}
+  });
+
+  document.getElementById('analysis-text').innerHTML = `
+    <h4>解讀與建議</h4>
+    <p>你的A軸得分為 ${A.toFixed(1)}，屬於「${color}」。請參考散點圖與雷達圖，了解各面向偏好……</p>`;
+});
+</script>
+</body>
+</html>
