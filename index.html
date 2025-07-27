@@ -9,118 +9,67 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body { background-color: #ffffff; }
+    .header { text-align: center; margin-bottom: 1rem; }
+    .header img { width: 100%; max-width: 600px; height: auto; }
+    .header h1 { margin-top: 0.5rem; }
+    .intro { max-width: 1000px; margin: auto; margin-bottom: 1.5rem; }
+    .survey-form-container { max-width: 1000px; margin: auto; }
     .section { margin-top: 1.5rem; }
-    .hidden { display: none; }
     .chart-container { width: 100%; max-width: 600px; margin: auto; }
-    .intro { width: 100%; max-width: 1000px; margin: auto; margin-top: 0.5rem; }
-    #home .header { margin-bottom: 1rem; }
+    .analysis { max-width: 1000px; margin: 2rem auto; font-size: 0.95rem; }
+    .analysis h4 { margin-bottom: 0.5rem; }
     @media (max-width: 576px) {
-      h1 { font-size: 1.75rem; margin-top: 0.5rem; }
+      .header h1 { font-size: 1.75rem; }
       h2 { font-size: 1.25rem; }
       .btn-lg { padding: 0.75rem 1.25rem; font-size: 1rem; }
-      .section { margin-top: 1rem; }
-      .intro { padding: 0 0.5rem; }
-      #home .header { margin-bottom: 0.5rem; }
+      .intro, .survey-form-container, .analysis { padding: 0 0.5rem; }
     }
   </style>
 </head>
 <body>
-  <div class="container-fluid px-3 py-5">
-    <!-- 首頁區塊 -->
-    <div id="home" class="text-center">
-      <div class="header">
-        <img src="taiwanpoliticalanalysis.png" alt="Logo" class="img-fluid" style="width:100%; max-width:600px; height:auto;">
-        <h1 class="mt-3">台灣政治光譜分析測驗</h1>
-      </div>
-      <div class="intro">
-        <p>你好！這是一個快速了解你在台灣政治光譜中位置的小工具。測驗包含 20 題，分別從「兩岸與認同」、「治理與秩序」、「經濟策略」、「社會議題」、「能源與環境」到「反極化與風格」，共六大面向。請對每題選擇 1（非常不同意）到 5（非常同意）的分數。完成後，你將看到對應的散點圖與雷達圖，系統也會自動為你歸類為「深藍」、「淺藍」、「中間白」、「淺綠」或「深綠」，讓你一目了然了解自己的政治傾向。這個測驗不是要讓你去批判政黨或別人，而是幫助你更了解自己在意什麼，並更好地思考與支持合適的候選人，做出更正確的決定。</p>
-      </div>
-      <div class="mt-3">
-        <button id="start-btn" class="btn btn-primary btn-lg">Start</button>
-      </div>
+  <!-- 首頁區塊 -->
+  <div id="home">
+    <div class="header">
+      <img src="taiwanpoliticalanalysis.png" alt="Logo">
+      <h1>台灣政治光譜分析測驗</h1>
     </div>
-
-    <!-- 測驗表單 -->
-    <div id="survey-container" class="hidden">
-      <h2 class="text-center">填寫以下題目（1 = 強烈不同意，5 = 強烈同意）</h2>
-      <form id="survey-form">
-        <!-- A軸 題目 -->
-        <div class="section">
-          <h4>A 軸：兩岸與認同</h4>
-          <div class="mb-3">
-            <label for="q1" class="form-label">1. 我支持在不預設政治前提下維持兩岸對話，以降低風險。</label>
-            <select id="q1" class="form-select" required>
-              <option value="">請選擇...</option>
-              <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
-            </select>
-          </div>
-          <div class="mb-3">
-            <label for="q2" class="form-label">2. 在主權與經貿之間，我更重視維護主權。</label>
-            <select id="q2" class="form-select" required>
-              <option value="">請選擇...</option>
-              <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
-            </select>
-          </div>
-          <div class="mb-3">
-            <label for="q3" class="form-label">3. 最理想的策略是維持現狀並分散市場及供應鏈風險。</label>
-            <select id="q3" class="form-select" required>
-              <option value="">請選擇...</option>
-              <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
-            </select>
-          </div>
-        </div>
-        <!-- B軸 題目 -->
-        <div class="section">
-          <h4>B 軸：治理與秩序</h4>
-          <div class="mb-3">
-            <label for="q4" class="form-label">4. 我支持政府在治安與資安上有強大執行力，並提供申訴機制。</label>
-            <select id="q4" class="form-select" required>
-              <option value="">請選擇...</option>
-              <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
-            </select>
-          </div>
-        </div>
-        <button type="submit" class="btn btn-primary mt-3">提交</button>
-      </form>
+    <div class="intro">
+      <p>你好！這是一個快速了解你在台灣政治光譜中位置的小工具。測驗包含 20 題，分別從「兩岸與認同」、「治理與秩序」、「經濟策略」、「社會議題」、「能源與環境」到「反極化與風格」，共六大面向。每題請選擇 1（非常不同意）到 5（非常同意）的分數。完成後，你將看到散點圖與雷達圖，並自動歸類為「深藍」、「淺藍」、「中間白」、「淺綠」或「深綠」，幫助你明確了解自己的政治傾向。這個測驗不是用來批判政黨或他人，而是助你更認識自己在意的議題，並更精準地選擇支持的候選人。</p>
     </div>
-
-    <!-- 頁尾：開發者介紹 -->
-    <div class="text-center text-muted mt-5 small">
-      本測驗由 Aston 獨立開發，不隸屬任何政黨或利益團體，結果僅供參考。
+    <div class="text-center mb-5">
+      <button id="start-btn" class="btn btn-primary btn-lg">Start</button>
     </div>
   </div>
 
-  <script>
-    document.getElementById('start-btn').addEventListener('click', function() {
-      document.getElementById('home').classList.add('hidden');
-      document.getElementById('survey-container').classList.remove('hidden');
-    });
+  <!-- 問卷區塊 -->
+  <div id="survey-container" class="hidden">
+    <h2 class="text-center">填寫以下題目（1 = 強烈不同意，5 = 強烈同意）</h2>
+    <div class="survey-form-container">
+      <form id="survey-form">
+        <!-- A 軸 -->
+        <div class="section">
+          <h4>A 軸：兩岸與認同</h4>
+          <div class="mb-3"><label class="form-label" for="q1">1. 我支持在不預設政治前提下維持兩岸對話，以降低風險。</label><select id="q1" class="form-select"><option value="">請選擇...</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></div>
+          <!-- 同樣結構依序填入 q2～q20 的題目 -->
+        </div>
+        <div class="text-center mt-4">
+          <button type="submit" class="btn btn-primary btn-lg">提交</button>
+        </div>
+      </form>
+    </div>
 
-    document.getElementById('survey-form').addEventListener('submit', function(e) {
-      e.preventDefault();
-      const vals = Array.from({length:20}, (_,i)=>parseInt(document.getElementById('q'+(i+1)).value,10));
-      const avg = idx => idx.reduce((s,i)=>s+vals[i-1],0)/idx.length;
-      const A=avg([1,2,3]), B=avg([4,5,6]), C=avg([7,8,9]),
-            D=avg([10,11,12]), E=avg([13,14,15]), F=avg([16,17,18]);
-      let cat='未分類';
-      if(A<=2&&B<=2&&D<=2&&F<=3) cat='深藍';
-      else if(A<=3&&B<=3&&D>=2&&D<=3) cat='淺藍';
-      else if(F>=4&&B<=3&&A>=2&&A<=4) cat='中間白';
-      else if(A>=3.5&&D>=3.5&&B>=3) cat='淺綠';
-      else if(A>=4.5&&D>=4&&B>=3.5&&(C>=4||E>=4)) cat='深綠';
-      document.getElementById('survey-container').innerHTML = `
-        <h3 class="text-center mt-4">你的光譜分類：${cat}</h3>
-        <div class="chart-container"><canvas id="scatterChart"></canvas></div>
-        <div class="chart-container mt-4"><canvas id="radarChart"></canvas></div>
-        <pre class="mt-3">A: ${A.toFixed(2)}, B: ${B.toFixed(2)}, C: ${C.toFixed(2)}, D: ${D.toFixed(2)}, E: ${E.toFixed(2)}, F: ${F.toFixed(2)}</pre>
-      `;
-      new Chart(document.getElementById('scatterChart'), {
-        type:'scatter', data:{datasets:[{label:'你的位置',data:[{x:A,y:B}],backgroundColor:'rgba(54,162,235,0.6)'}]}, options:{scales:{x:{min:1,max:5,title:{display:true,text:'A 軸'}},y:{min:1,max:5,title:{display:true,text:'B 軸'}}}}
-      });
-      new Chart(document.getElementById('radarChart'), {
-        type:'radar', data:{labels:['A','B','C','D','E','F'], datasets:[{label:'分數', data:[A,B,C,D,E,F], fill:true, backgroundColor:'rgba(255,99,132,0.4)', borderColor:'rgba(255,99,132,1)'}]}, options:{scales:{r:{min:1,max:5,ticks:{stepSize:1}}}}
-      });
-    });
-  </script>
-</body>
-</html>
+    <!-- 結果與解讀 -->
+    <div id="result-analysis" class="survey-form-container hidden">
+      <div id="result-charts"></div>
+      <div class="analysis" id="analysis-text"></div>
+    </div>
+  </div>
+
+  <!-- 頁尾：開發者介紹 -->
+  <div class="text-center text-muted mt-5 small">
+    本測驗由 Aston 獨立開發，不隸屬任何政黨或利益團體，結果僅供參考。
+  </div>
+
+  <script>
+    // 首頁切換
+    document.getElementById('start-btn').addEventListener('click', ()
